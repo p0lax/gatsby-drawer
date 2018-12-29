@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import styles from './Drawer.module.scss';
-import { COLORS } from '../constants';
+import { COLORS, MOD } from '../constants';
 import Tools from './Tools';
 
 class Drawer extends React.Component {
@@ -11,7 +11,8 @@ class Drawer extends React.Component {
     super(props);
 
     this.state = {
-      color: COLORS[0]
+      color: COLORS[0],
+      mode: MOD.FREE
     };
   }
 
@@ -41,13 +42,41 @@ class Drawer extends React.Component {
   }
 
   onMouseMove = (e) => {
-    this.draw(this.position, this.getPosition(e));
-    this.position = this.getPosition(e);
+    const nextPosition = this.getPosition(e);
+    switch(this.state.mode) {
+      case MOD.RECT:
+        this.drawRect(this.position, nextPosition);
+        break;
+      default:
+        this.draw(this.position, nextPosition);
+        this.position = this.getPosition(e);
+    }
   }
 
-  onMouseUp = () => {
+  onMouseUp = (e) => {
     this.canvas.removeEventListener('mousemove', this.onMouseMove);
     window.removeEventListener('mouseup', this.onMouseUp);
+  }
+
+  calcCoords = (prev, next) => {
+    return {
+      x0: Math.min(prev.x, next.x),
+      x1: Math.abs(prev.x - next.x),
+      y0: Math.min(prev.y, next.y),
+      y1: Math.abs(prev.y - next.y)
+    };
+  }
+
+  drawRect = (prev, next) => {
+    const coords = this.calcCoords(prev, next);
+    const { x0, x1, y0, y1 } = coords;
+    this.erase();
+    this.ctx.beginPath();
+    this.ctx.rect(x0, y0, x1, y1);
+    this.ctx.strokeStyle = this.state.color;
+    this.ctx.lineWidth = 3;
+    this.ctx.stroke();
+    this.ctx.closePath();
   }
 
   draw = (prev, next) => {
@@ -69,11 +98,19 @@ class Drawer extends React.Component {
     this.setState({ color: COLORS[colorIndex] });
   }
 
+  selectMode = (mode) => {
+    this.setState({ mode });
+  }
+
   render() {
     const { width, height } = this.props;
     return (
       <div className={styles.root}>
-        <Tools onSelectColor={this.selectColor} onClear={this.erase} />	
+        <Tools 
+          onSelectColor={this.selectColor} 
+          onSelectMode={this.selectMode}
+          onClear={this.erase} 
+        />	
         <canvas className={styles.canvas} ref="canvas" width={width} height={height}></canvas>
       </div>
     );

@@ -8,16 +8,20 @@
 }
 
 .tools {
-  padding: 5px;
+  padding: 0 5px 5px;
   width: 200px; 
 }
 
-.colorPalette {
+.toolsBlock {
+  padding: 5px;
+  margin-bottom: 5px;
   display: flex;
   flex-direction: row;
+  border: 1px solid #aaa;
 }
 
 .colorItem {
+  cursor: pointer;
   width: 20px;
   height: 20px;
   margin: 2px;
